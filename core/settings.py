@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'usuarios',
 ]
 
 MIDDLEWARE = [
@@ -132,3 +133,7 @@ MESSAGE_TAGS = {
     constants.SUCCESS: 'green',
     constants.WARNING: 'orange'
 }
+
+# Redirect 
+
+LOGIN_URL = 'login'

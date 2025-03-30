@@ -1,0 +1,7 @@
+{% if messages %}
+    {% for message in messages %}
+        <div class="bg-{{message.tags}}-100 border border-{{message.tags}}-400 text-center text-{{message.tags}}-700 px-4 py-1.5 mb-6 rounded relative" role="alert">
+            <span class="block sm:inline">{{message}}</span>
+        </div>
+    {% endfor %}
+{% endif %}
