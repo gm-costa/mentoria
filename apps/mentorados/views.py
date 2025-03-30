@@ -103,3 +103,22 @@ def auth(request):
         return response
     
     return render(request, template_name)
+
+def valida_token(token):
+    return Mentorado.objects.filter(token=token).first()
+
+def escolher_dia(request):
+    template_name = 'escolher_dia.html'
+    if not valida_token(request.COOKIES.get('auth_token')):
+        return redirect(reverse('auth_mentorado'))
+    if request.method == 'GET':
+        disponibilidades = DisponibilidadeHorario.objects.filter(
+            data_inicial__gte=datetime.now(),
+            agendado=False
+        ).values_list('data_inicial', flat=True)
+        horarios = []
+        for disp in disponibilidades:
+            # horarios.append(disp.date().strftime('%d/%m/%Y'))
+            horarios.append(disp)
+
+        return render(request, template_name, {'horarios': list(set(horarios))})
