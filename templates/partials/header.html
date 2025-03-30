@@ -1,44 +1,30 @@
 {% load static %}
 {% if request.user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg navbar-dark nav-menu">
-        <div class="container">
-            <a class="navbar-brand" href="#">start.se</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
-                <div class="mx-auto">
-                    <ul class="navbar-nav align-items-center gap-5">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'cadastrar_empresa' %}">
-                                Quero captar
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lista_empresas' %}">
-                                Minhas empresas
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'sugestoes' %}">
-                                Marketplace
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lista_propostas' %}">
-                                Propostas
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'sair' %}" data-bs-tt="tooltip" data-bs-placement="left" title="Logout {{request.user.username}}">
-                            <i class="bi bi-door-open-fill me-1 fs-5"></i>
-                        </a>             
-                    </li>
-                </ul>
+    <header class="bg-slate-900">
+        <nav class="flex items-center justify-between p-4 lg:px-8" aria-label="Global">
+            <div class="flex lg:flex-1">
+                <a href="#" class="-m-1.5 p-1.5">
+                    <span class="sr-only">Your Company</span>
+                    <img class="h-8 w-auto" src="{% static 'img/logo.png' %}" alt="">
+                </a>
             </div>
-        </div>
-    </nav>
+            <div class="flex lg:hidden">
+                <button type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
+            </div>
+            <div class="hidden lg:flex lg:gap-x-12">
+                <a href="{% url 'mentorados' %}" class="text-sm/6 font-semibold text-gray-100">Mentorados</a>
+                <a href="#" class="text-sm/6 font-semibold text-gray-100">Tarefas</a>
+                <a href="#" class="text-sm/6 font-semibold text-gray-100">Progressos</a>
+                <a href="#" class="text-sm/6 font-semibold text-gray-100">Navigators</a>
+            </div>
+            <div class="hidden lg:flex lg:flex-1 lg:justify-end">
+                <a href="{% url 'sair' %}" class="text-sm/6 font-semibold text-gray-100">Log in <span aria-hidden="true">&rarr;</span></a>
+            </div>
+        </nav>
+    </header>
 {% endif %}
