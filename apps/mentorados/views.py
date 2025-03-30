@@ -56,7 +56,7 @@ def reunioes(request):
     template_name = 'reunioes.html'
     reunioes = Reuniao.objects.filter().all()
     context = {'reunioes': reunioes}
-    
+
     if request.method == 'POST':
         data = request.POST.get('data')
         data = datetime.strptime(data, '%Y-%m-%dT%H:%M')
@@ -84,3 +84,22 @@ def reunioes(request):
         return redirect('reunioes')
 
     return render(request, template_name, context)
+
+def auth(request):
+    template_name = 'auth_mentorado.html'
+    if request.method == 'POST':
+        token = request.POST.get('token').strip()
+
+        if len(token) == 0:
+            messages.add_message(request, messages.WARNING, 'Token não informado !')
+            return redirect(reverse('auth_mentorado'))
+        
+        if not Mentorado.objects.filter(token=token).exists():
+            messages.add_message(request, messages.ERROR, 'Token inválido')
+            return redirect(reverse('auth_mentorado'))
+        
+        response = redirect('escolher_dia')
+        response.set_cookie('auth_token', token, max_age=3600)
+        return response
+    
+    return render(request, template_name)

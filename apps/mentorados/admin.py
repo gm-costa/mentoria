@@ -4,7 +4,7 @@ from .models import Mentorado, Reuniao
 
 class MentoradoAdmin(admin.ModelAdmin):
     model = Mentorado
-    list_display = ['nome', 'estagio', 'user', 'criado_em']
+    list_display = ['nome', 'estagio', 'user', 'token', 'criado_em']
 
 class ReuniaoAdmin(admin.ModelAdmin):
     model = Reuniao
