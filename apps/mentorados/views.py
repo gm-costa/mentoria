@@ -54,7 +54,8 @@ def mentorados(request):
 
 def reunioes(request):
     template_name = 'reunioes.html'
-    reunioes = Reuniao.objects.filter().all()
+    #TODO: a princípio mostrar todas as reunioes, depois filtar pelo template
+    reunioes = Reuniao.objects.filter(data__mentor=request.user).all()
     context = {'reunioes': reunioes}
 
     if request.method == 'POST':
@@ -122,3 +123,51 @@ def escolher_dia(request):
             horarios.append(disp)
 
         return render(request, template_name, {'horarios': list(set(horarios))})
+
+def agendar_reuniao(request):
+    if not valida_token(request.COOKIES.get('auth_token')):
+        return redirect(reverse('auth_mentorado'))
+    template_name = 'agendar_reuniao.html'
+    if request.method == 'GET':
+        data = request.GET.get("data")
+        data = datetime.strptime(data, '%d-%m-%Y')
+        horarios = DisponibilidadeHorario.objects.filter(
+            data_inicial__gte=data,
+            data_inicial__lt=data + timedelta(days=1),
+            agendado=False
+        )
+        context = {'data': data,'horarios': horarios, 'tags': Reuniao.tag_choices}
+
+        return render(request, template_name, context)
+
+    if request.method == 'POST':
+        # rota = request.META['PATH_INFO']
+        # print(f'rota:\n{rota}\n')
+        #TODO: Solucionar o erro
+        horario_id = request.POST.get('horario')
+        tag = request.POST.get('tag')
+        descricao = request.POST.get("descricao")
+
+        if len(horario_id) == 0 or len(tag) == 0 or len(descricao) == 0:
+            messages.add_message(request, messages.WARNING, 'Preencha todos os campos !')
+            return redirect(reverse('agendar_reuniao'))
+            return redirect(f'/mentorados/agendar_reuniao/?data={data}')
+
+        reuniao = Reuniao(
+            data_id=horario_id,
+            mentorado=valida_token(request.COOKIES.get('auth_token')),
+            tag=tag,
+            descricao=descricao
+        )
+        try:
+            reuniao.save()
+
+            horario = DisponibilidadeHorario.objects.get(id=horario_id)
+            horario.agendado = True
+            horario.save()
+
+            messages.add_message(request, messages.SUCCESS, 'Reunião agendada com sucesso.')
+            return redirect(reverse('escolher_dia'))
+        except Exception as e:
+            messages.add_message(request, messages.ERROR, f'Erro: {e}.')
+            return redirect(reverse('agendar_reuniao'))

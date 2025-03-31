@@ -7,4 +7,5 @@ urlpatterns = [
     path('reunioes/', views.reunioes, name='reunioes'),
     path('auth/', views.auth, name="auth_mentorado"),
     path('escolher-dia/', views.escolher_dia, name='escolher_dia'),
+    path('agendar-reuniao/', views.agendar_reuniao, name='agendar_reuniao'),
 ]
