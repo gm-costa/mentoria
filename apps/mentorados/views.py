@@ -114,6 +114,7 @@ def valida_token(token):
 def escolher_dia(request):
     template_name = 'escolher_dia.html'
     if not valida_token(request.COOKIES.get('auth_token')):
+        #TODO: Fazer através de Modal, ao invés de redirect
         return redirect(reverse('auth_mentorado'))
     if request.method == 'GET':
         disponibilidades = DisponibilidadeHorario.objects.filter(
