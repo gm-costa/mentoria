@@ -81,13 +81,13 @@
                         <tr>
                             <td class="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8">
                                 <div class="flex items-center gap-x-4">
-                                    <img src="{% if mentorado.foto %}mentorado.foto.url{% endif %}" alt="" class="size-8 rounded-full bg-gray-800">
+                                    <img src="{% if mentorado.foto %}{{mentorado.foto.url}}{% endif %}" alt="" class="size-8 rounded-full bg-gray-800">
                                     <div class="truncate text-sm/6 font-medium text-white">{{mentorado.nome}}</div>
                                 </div>
                             </td>
                             <td class="hidden py-4 pl-0 pr-4 sm:table-cell sm:pr-8">
                                 <div class="flex gap-x-3">
-                                    <div class="rounded-md bg-gray-700/40 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-white/10">{{mentorado.estagio}}</div>
+                                    <div class="rounded-md bg-gray-700/40 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-white/10">{{mentorado.get_estagio_display}}</div>
                                 </div>
                             </td>
                             <td class="py-4 pl-0 pr-4 text-sm/6 sm:pr-8 lg:pr-20">

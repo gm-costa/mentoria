@@ -1,14 +1,16 @@
 from datetime import datetime, timedelta
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from mentorados.models import DisponibilidadeHorario, Navigator, Mentorado, Reuniao
 
 
+@login_required
 def mentorados(request):
     template_name = 'mentorados.html'
-    navigators = Navigator.objects.filter(user=request.user.id).all()
-    mentorados = Mentorado.objects.filter(user=request.user.id).all()
+    navigators = Navigator.objects.filter(user=request.user)
+    mentorados = Mentorado.objects.filter(user=request.user)
 
     estagios_flat = [i[1] for i in Mentorado.estagio_choices]
     qtd_estagios = []
@@ -52,10 +54,11 @@ def mentorados(request):
     
     return render(request, template_name, context)
 
+@login_required
 def reunioes(request):
     template_name = 'reunioes.html'
     #TODO: a princípio mostrar todas as reunioes, depois filtar pelo template
-    reunioes = Reuniao.objects.filter(data__mentor=request.user).all()
+    reunioes = Reuniao.objects.filter(data__mentor=request.user)
     context = {'reunioes': reunioes}
 
     if request.method == 'POST':
@@ -151,7 +154,6 @@ def agendar_reuniao(request):
         if len(horario_id) == 0 or len(tag) == 0 or len(descricao) == 0:
             messages.add_message(request, messages.WARNING, 'Preencha todos os campos !')
             return redirect(reverse('agendar_reuniao'))
-            return redirect(f'/mentorados/agendar_reuniao/?data={data}')
 
         reuniao = Reuniao(
             data_id=horario_id,
