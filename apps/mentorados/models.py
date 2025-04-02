@@ -61,3 +61,13 @@ class Reuniao(models.Model):
 
     class Meta:
         verbose_name_plural = 'reunioes'
+
+class Tarefa(models.Model):
+    mentorado = models.ForeignKey(Mentorado, on_delete=models.DO_NOTHING)
+    tarefa = models.CharField(max_length=255)
+    realizada = models.BooleanField(default=False)
+
+
+class Upload(models.Model):
+    mentorado = models.ForeignKey(Mentorado, on_delete=models.DO_NOTHING)
+    video = models.FileField(upload_to='video')
