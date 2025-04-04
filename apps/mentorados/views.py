@@ -4,9 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from .auth import valida_token
 from mentorados.models import DisponibilidadeHorario, Navigator, Mentorado, Reuniao, Tarefa, Upload
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+
+
+def home(request):
+    return render(request, 'home.html')
 
 @login_required
 def mentorados(request):
@@ -18,7 +23,7 @@ def mentorados(request):
     qtd_estagios = []
 
     for i, j in Mentorado.estagio_choices:
-        qtd_estagios.append(Mentorado.objects.filter(estagio=i).count())
+        qtd_estagios.append(Mentorado.objects.filter(estagio=i, user=request.user).count())
 
     context = {
         'estagios': Mentorado.estagio_choices,
@@ -57,6 +62,26 @@ def mentorados(request):
     return render(request, template_name, context)
 
 @login_required
+@csrf_exempt
+def add_navigator(request):
+
+    nome = request.POST.get('nome_navigator').strip()
+    print(nome)
+    
+    if len(nome) > 0:
+        try:
+            Navigator(nome=nome, user=request.user).save()
+            return render(
+                request, 
+                'options_navigator.html',
+                {'navigators': Navigator.objects.all()}   
+            )
+        except Exception as e:
+            return HttpResponse(f'Erro: {e}.')
+
+    return HttpResponse('Nome não informado !')
+
+@login_required
 def reunioes(request):
     template_name = 'reunioes.html'
     #TODO: a princípio mostrar todas as reunioes, depois filtar pelo template
@@ -68,6 +93,7 @@ def reunioes(request):
         data = datetime.strptime(data, '%Y-%m-%dT%H:%M')
 
         disponibilidade_horario = DisponibilidadeHorario.objects.filter(
+            mentor=request.user,
             data_inicial__gte=(data - timedelta(minutes=50)),
             data_inicial__lte=(data + timedelta(minutes=50))
         )
@@ -75,7 +101,7 @@ def reunioes(request):
         if disponibilidade_horario.exists():
             mensagem = " e ".join(f"{i.data_inicial.strftime('%d-%m-%Y %H:%M')} à {i.data_final.strftime('%d-%m-%Y %H:%M')}" for i in disponibilidade)
             messages.add_message(request, messages.WARNING, f'Você já possui reuniões em aberto entre: {mensagem}')
-            return redirect('reunioes')
+            return redirect(reverse('reunioes'))
 
         disponibilidade = DisponibilidadeHorario(
             data_inicial=data,
@@ -110,71 +136,75 @@ def auth_mentorado(request):
     
     return render(request, template_name)
 
-def valida_token(token):
-    return Mentorado.objects.filter(token=token).first()
-
 def escolher_dia(request):
-    #TODO: Fazer através de Modal, ao invés de redirect
     mentorado = valida_token(request.COOKIES.get('auth_token'))
+    #TODO: Fazer autenticação através de Modal, ao invés de redirect
     if not mentorado:
         return redirect(reverse('auth_mentorado'))
 
     template_name = 'escolher_dia.html'
-    #TODO: Filtrar somente pela data
+
     disponibilidades = DisponibilidadeHorario.objects.filter(
         data_inicial__gte=datetime.now(),
         agendado=False,
         mentor=mentorado.user
     ).values_list('data_inicial', flat=True)
 
-    print(disponibilidades)
+    # print(disponibilidades.query)
 
-    horarios = []
-    for disp in disponibilidades:
-        # horarios.append(disp.date().strftime('%d/%m/%Y'))
-        horarios.append(disp)
+    datas = sorted(list(set([x.date() for x in disponibilidades])))
 
-    print(horarios)
-
-    return render(request, template_name, {'horarios': list(set(horarios))})
+    return render(request, template_name, {'datas': datas})
 
 def agendar_reuniao(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
     if not mentorado:
         return redirect(reverse('auth_mentorado'))
+    
     template_name = 'agendar_reuniao.html'
-    data = request.GET.get("data")
-    data = datetime.strptime(data, '%d-%m-%Y')
+    data_str = request.GET.get('data')
+    print(data_str)
+    data = datetime.strptime(data_str, '%d-%m-%Y')
+    print(data)
     horarios = DisponibilidadeHorario.objects.filter(
         data_inicial__gte=data,
         data_inicial__lt=data + timedelta(days=1),
         agendado=False,
         mentor=mentorado.user
     )
-    context = {'data': data,'horarios': horarios, 'tags': Reuniao.tag_choices}       
+    context = {'data': data_str, 'horarios': horarios, 'tags': Reuniao.tag_choices}    
 
     if request.method == 'POST':
-        # rota = request.META['PATH_INFO']
-        # print(f'rota:\n{rota}\n')
-        #TODO: Solucionar o erro
         horario_id = request.POST.get('horario')
         tag = request.POST.get('tag')
         descricao = request.POST.get("descricao")
 
         if len(horario_id) == 0 or len(tag) == 0 or len(descricao) == 0:
             messages.add_message(request, messages.WARNING, 'Preencha todos os campos !')
-            return redirect(reverse('agendar_reuniao'))
+            return redirect(f'/mentorados/agendar-reuniao/?data={data_str}')
+
+        try:
+            horario = DisponibilidadeHorario.objects.get(id=horario_id)
+        except DisponibilidadeHorario.DoesNotExist:
+        # if not horario:
+            messages.add_message(request, messages.WARNING, 'Este horário não está cadastrado !')
+            return redirect(f'/mentorados/agendar-reuniao/?data={data_str}')
+
+        if horario.mentor != mentorado.user:
+            messages.add_message(request, messages.WARNING, 'Este horário não pertence ao seu mentor !')
+            return redirect(f'/mentorados/agendar-reuniao/?data={data_str}')
 
         reuniao = Reuniao(
             data_id=horario_id,
-            mentorado=valida_token(request.COOKIES.get('auth_token')),
+            mentorado=mentorado,
             tag=tag,
             descricao=descricao
         )
+        #TODO: implementar atomicidade
         try:
             reuniao.save()
 
-            horario = DisponibilidadeHorario.objects.get(id=horario_id)
+            horario = horario
             horario.agendado = True
             horario.save()
 

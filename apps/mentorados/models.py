@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 class Navigator(models.Model):
     nome = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE) # mentor
 
     def __str__(self):
         return self.nome
@@ -19,7 +19,7 @@ class Mentorado(models.Model):
     foto = models.ImageField(upload_to='fotos', null=True, blank=True)
     estagio = models.CharField(max_length=2, choices=estagio_choices)
     navigator = models.ForeignKey(Navigator, null=True, blank=True, on_delete=models.SET_NULL)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE) # mentor
     token = models.CharField(max_length=16, null=True, blank=True)
     criado_em = models.DateField(auto_now_add=True)
 
@@ -66,7 +66,6 @@ class Tarefa(models.Model):
     mentorado = models.ForeignKey(Mentorado, on_delete=models.DO_NOTHING)
     tarefa = models.CharField(max_length=255)
     realizada = models.BooleanField(default=False)
-
 
 class Upload(models.Model):
     mentorado = models.ForeignKey(Mentorado, on_delete=models.DO_NOTHING)

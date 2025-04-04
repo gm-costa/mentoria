@@ -9,5 +9,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('usuarios.urls')),
     path('mentorados/', include('mentorados.urls')),
-    path('', lambda home: redirect(reverse('mentorados'))),
+    path('', lambda home: redirect(reverse('home'))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

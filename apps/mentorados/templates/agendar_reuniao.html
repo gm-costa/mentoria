@@ -7,8 +7,7 @@
     <div class="max-w-5xl mx-auto py-8">
         <h2 class="my-4 text-2xl/9 font-bold tracking-tight text-gray-100">Agende sua reunião</h2>
         {% include "partials/messages.html" %}
-        <form action="{% url 'agendar_reuniao' %}" method="POST">
-        {% comment %} <form action="." method="POST"> {% endcomment %}
+        <form action="{{request.path}}?data={{data}}" method="POST">
             {% csrf_token %}
             <label class="block text-sm/6 font-medium text-gray-200">Horário</label>
             <select name="horario" class="block  w-full rounded-md bg-white/5 px-3 py-2.5 text-base text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6">
