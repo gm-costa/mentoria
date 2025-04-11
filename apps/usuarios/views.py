@@ -2,7 +2,6 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-from django.urls import reverse
 
 
 def cadastro(request):
@@ -97,7 +96,7 @@ def logar(request):
 
         if user:
             login(request, user)
-            return redirect(reverse('mentorados'))
+            return redirect('mentorados')
 
         messages.add_message(request, messages.ERROR, 'Senha inválida !')
         return render(request, template_name, context)
@@ -106,4 +105,4 @@ def logar(request):
 
 def sair(request):
     logout(request)
-    return redirect(reverse('login'))
+    return redirect('home')

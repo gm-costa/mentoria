@@ -1,0 +1,22 @@
+<div class="relative z-10 {{class_name}}" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center w-96">
+                <h2 class="text-2xl font-bold text-gray-200 mb-4">Acessar conteúdo</h2>
+                <div class="hidden bg-orange-100 border border-orange-400 text-center text-orange-700 px-4 py-1.5 mb-6 rounded relative" role="alert">
+                    <span id="mensagem_retorno" class="block sm:inline"></span>
+                </div>
+                
+                <div class="form">
+                    <label class="text-gray-400 block text-left mb-1">Token de acesso</label>
+                    <input type="text" id="token" name="token" class="w-full p-3 rounded-md bg-gray-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Digite seu token" autofocus>
+                    <div class="flex gap-6 mt-3">
+                        <button id="modalBtnCancelar" class="w-full mt-4 bg-slate-700 text-white font-semibold p-3 rounded-md hover:bg-slate-900/50 transition duration-300 ease-in-out cursor-pointer">Cancelar</button>
+                        <button type="submit" id="modalBtnAcessar" class="w-full mt-4 bg-indigo-600 text-white font-semibold p-3 rounded-md hover:bg-indigo-700 transition cursor-pointer">Acessar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

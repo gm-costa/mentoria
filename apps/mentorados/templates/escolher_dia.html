@@ -9,6 +9,7 @@
         <div class="w-lg">
             {% include "partials/messages.html" %}
         </div>
+        {% csrf_token %}
         <ul role="list" class="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {% for data in datas %}         
                 <li class="col-span-1 flex rounded-md shadow-sm">
@@ -25,5 +26,8 @@
             {% endfor %}
         </ul>
     </div>
+    <!-- modal authenticator -->
+    {% include "modal_authenticator.html" %}
 </div>
+<script src="{% static 'mentorados/js/auth.js' %}"></script>
 {% endblock 'body' %}

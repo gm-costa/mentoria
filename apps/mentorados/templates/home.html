@@ -2,27 +2,45 @@
 {% load static %}
 {% block 'title' %}Home{% endblock 'title' %}
 
+{% block 'head' %}
+    <style>
+        body .min-h-screen {
+            background-image: url(https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            background-size: cover;
+        }
+    </style>
+{% endblock 'head' %}
+
 {% block 'body' %}
 <div class="bg-[#040e1b] min-h-screen">
-    <div class="flex flex-col items-center text-white max-w-7xl mx-auto p-12 ">
-        <img src="{% static 'img/logo.png' %}" alt="Logo do site" class="size-36 mb-5">
-        <h1 class="text-5xl mb-4">Bem vindo ao <span class="font-bold italic">Mentorfy</span></h1>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-        <div class="grid grid-cols-3 gap-5 w-full mt-12 px-12">
-            <div class="flex flex-col items-center bg-[#0B1526] rounded-xl p-6">
+    <div class="flex text-indigo-300 max-w-7xl mx-auto p-12">
+        <div class="w-[75vw] flex flex-col items-center">
+            <img src="{% static 'img/logo.png' %}" alt="Logo do site" class="size-25 mb-5">
+            <h1 class="text-5xl mb-4">Bem-vindo à <span class="font-bold italic">Mentorfy</span></h1>
+            <p class="">Onde você encontra os melhores profissionais para assessorar seu negócio</p>
+        </div>
+        <div class="w-[25vw] flex flex-col items-center gap-8 px-4">
+            
+
+            <div class="flex flex-col items-center bg-slate-900/75 rounded-xl w-full min-h-36 py-6">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="text-indigo-400 size-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                     </svg>
                     <h2 class="text-2xl">Mentores</h2>
                 </div>
-                <p class="text-gray-500 my-8">Gerencie seus mentorados</p>
-                <a href="{% url 'login' %}" class="text-indigo-600 font-bold hover:underline">Acesse</a>  
+                <p class="text-sm text-gray-700 mb-6">Área restrita</p>
+                <!-- <p class="text-gray-500 my-6">Gerencie seus mentorados</p> -->
+                <a href="{% url 'login' %}" class="text-indigo-700 font-bold hover:text-indigo-600 hover:underline">Acesse</a>  
             </div>
-            <div class="bg-[#0B1526] rounded-xl ">fjlkda</div>
-            <div class="bg-[#0B1526] rounded-xl ">fjlkda</div>
-        </div>
+            <div class="flex flex-col items-center gap-3 bg-slate-900/75 rounded-xl w-full min-h-36 py-6">
+                <h2 class="text-2xl mb-3">Mentorados</h2>
+                <a href="{% url 'escolher_dia' %}" class="text-indigo-700 font-bold hover:text-indigo-600 hover:underline">Agendar reunião</a> 
+                <a href="{% url 'tarefas' %}" class="text-indigo-700 font-bold hover:text-indigo-600 hover:underline">Tarefas</a> 
+            </div>
 
+
+        </div>
     </div>
 </div>
 {% endblock 'body' %}

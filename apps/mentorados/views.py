@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta
+import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from .auth import valida_token
 from mentorados.models import DisponibilidadeHorario, Navigator, Mentorado, Reuniao, Tarefa, Upload
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.db import transaction
 
 
 def home(request):
@@ -16,8 +18,8 @@ def home(request):
 @login_required
 def mentorados(request):
     template_name = 'mentorados.html'
-    navigators = Navigator.objects.filter(user=request.user)
-    mentorados = Mentorado.objects.filter(user=request.user)
+    navigators = Navigator.objects.filter(user=request.user).order_by('nome')
+    mentorados = Mentorado.objects.filter(user=request.user).order_by('nome')
 
     estagios_flat = [i[1] for i in Mentorado.estagio_choices]
     qtd_estagios = []
@@ -33,7 +35,7 @@ def mentorados(request):
         'qtd_estagios': qtd_estagios,
     }
     if request.method == "POST":
-        nome = request.POST.get('nome').upper()
+        nome = request.POST.get('nome').strip().upper()
         foto = request.FILES.get('foto')
         estagio = request.POST.get("estagio").strip()
         navigator = request.POST.get('navigator').strip()
@@ -62,31 +64,25 @@ def mentorados(request):
     return render(request, template_name, context)
 
 @login_required
-@csrf_exempt
 def add_navigator(request):
 
-    nome = request.POST.get('nome_navigator').strip()
-    print(nome)
+    nome = request.POST.get('nome_navigator').strip().upper()
     
     if len(nome) > 0:
-        try:
-            Navigator(nome=nome, user=request.user).save()
-            return render(
-                request, 
-                'options_navigator.html',
-                {'navigators': Navigator.objects.all()}   
-            )
-        except Exception as e:
-            return HttpResponse(f'Erro: {e}.')
+        Navigator(nome=nome, user=request.user).save()
 
-    return HttpResponse('Nome não informado !')
+    navigators = Navigator.objects.filter(user=request.user).order_by('nome')
+
+    return render(request, 'options_navigator.html', {'navigators':  navigators})
 
 @login_required
 def reunioes(request):
     template_name = 'reunioes.html'
     #TODO: a princípio mostrar todas as reunioes, depois filtar pelo template
     reunioes = Reuniao.objects.filter(data__mentor=request.user)
-    context = {'reunioes': reunioes}
+    horarios = [str(h).zfill(2) for h in range(8, 18) if h not in (12, 13)  ]
+    # context = {'reunioes': reunioes}
+    context = {'reunioes': reunioes, 'horarios': horarios}
 
     if request.method == 'POST':
         data = request.POST.get('data')
@@ -117,44 +113,59 @@ def reunioes(request):
 
     return render(request, template_name, context)
 
-def auth_mentorado(request):
-    template_name = 'auth_mentorado.html'
-    if request.method == 'POST':
-        token = request.POST.get('token').strip()
+# def auth_mentorado(request):
+#     # template_name = 'auth_mentorado.html'
+#     if request.method == 'POST':
+#         url_origem = request.POST.get('url_origem')
+#         token = request.POST.get('token').strip()
 
-        if len(token) == 0:
-            messages.add_message(request, messages.WARNING, 'Token não informado !')
-            return redirect(reverse('auth_mentorado'))
+#         if len(token) == 0:
+#             messages.add_message(request, messages.WARNING, 'Token não informado !')
+#             return redirect(url_origem)
         
-        if not Mentorado.objects.filter(token=token).exists():
-            messages.add_message(request, messages.ERROR, 'Token inválido')
-            return redirect(reverse('auth_mentorado'))
+#         if not Mentorado.objects.filter(token=token).exists():
+#             messages.add_message(request, messages.ERROR, 'Token inválido')
+#             return redirect(url_origem)
+#             # return redirect('auth_mentorado')
         
-        response = redirect('escolher_dia')
-        response.set_cookie('auth_token', token, max_age=3600)
-        return response
+#         # response = redirect('escolher_dia')
+#         response = redirect(url_origem)
+#         # response.set_cookie('auth_token', token, max_age=3600)
+#         response.set_cookie('auth_token', token, max_age=2*60)
+#         return response
     
-    return render(request, template_name)
+#     # return render(request, template_name)
+
+def auth_mentorado(request):
+    body = json.loads(request.body)
+    token = body['token']
+    if len(token) == 0:
+        return JsonResponse({'status': 2, 'mensagem': 'Token não informado !'})
+    
+    if not Mentorado.objects.filter(token=token).exists():
+        return JsonResponse({'status': 1, 'mensagem': 'Token inválido.'})
+    
+    return JsonResponse({'status': 0, 'mensagem': 'Sucesso'})
 
 def escolher_dia(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
-    #TODO: Fazer autenticação através de Modal, ao invés de redirect
-    if not mentorado:
-        return redirect(reverse('auth_mentorado'))
-
+    class_name = 'hidden' if mentorado else ''
     template_name = 'escolher_dia.html'
+    context = {'class_name': class_name}
 
-    disponibilidades = DisponibilidadeHorario.objects.filter(
-        data_inicial__gte=datetime.now(),
-        agendado=False,
-        mentor=mentorado.user
-    ).values_list('data_inicial', flat=True)
+    if mentorado:
 
-    # print(disponibilidades.query)
+        disponibilidades = DisponibilidadeHorario.objects.filter(
+            data_inicial__gte=datetime.now(),
+            agendado=False,
+            mentor=mentorado.user
+        ).values_list('data_inicial', flat=True)
 
-    datas = sorted(list(set([x.date() for x in disponibilidades])))
+        datas = sorted(list(set([x.date() for x in disponibilidades])))
 
-    return render(request, template_name, {'datas': datas})
+        context['datas'] = datas
+
+    return render(request, template_name, context)
 
 def agendar_reuniao(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
@@ -163,9 +174,7 @@ def agendar_reuniao(request):
     
     template_name = 'agendar_reuniao.html'
     data_str = request.GET.get('data')
-    print(data_str)
     data = datetime.strptime(data_str, '%d-%m-%Y')
-    print(data)
     horarios = DisponibilidadeHorario.objects.filter(
         data_inicial__gte=data,
         data_inicial__lt=data + timedelta(days=1),
@@ -186,7 +195,6 @@ def agendar_reuniao(request):
         try:
             horario = DisponibilidadeHorario.objects.get(id=horario_id)
         except DisponibilidadeHorario.DoesNotExist:
-        # if not horario:
             messages.add_message(request, messages.WARNING, 'Este horário não está cadastrado !')
             return redirect(f'/mentorados/agendar-reuniao/?data={data_str}')
 
@@ -200,24 +208,26 @@ def agendar_reuniao(request):
             tag=tag,
             descricao=descricao
         )
-        #TODO: implementar atomicidade
-        try:
-            reuniao.save()
 
-            horario = horario
-            horario.agendado = True
-            horario.save()
+        try:
+            with transaction.atomic():
+                reuniao.save()
+                # horario = horario
+                # horario.agendado = True
+                # horario.save()
+                reuniao.data.agendado = True
+                reuniao.data.save()
 
             messages.add_message(request, messages.SUCCESS, 'Reunião agendada com sucesso.')
             return redirect(reverse('escolher_dia'))
         except Exception as e:
             messages.add_message(request, messages.ERROR, f'Erro: {e}.')
-            return redirect(reverse('agendar_reuniao'))
+            return redirect(f'/mentorados/agendar-reuniao/?data={data_str}')
 
     return render(request, template_name, context)
 
 @login_required
-def tarefa_adicionar(request, id):
+def tarefa_adicionar(request, id): #id do mentorado
     mentorado = Mentorado.objects.get(id=id)
     if mentorado.user != request.user:
         raise Http404()
@@ -227,18 +237,18 @@ def tarefa_adicionar(request, id):
     context = {'mentorado': mentorado, 'tarefas': tarefas, 'videos': videos}
 
     if request.method == 'POST':
-        tarefa = request.POST.get('tarefa').strip()
+        tarefa_descricao = request.POST.get('tarefa').strip()
 
-        if len(tarefa) == 0:
+        if len(tarefa_descricao) == 0:
             messages.add_message(request, messages.WARNING, 'Tarefa não informada !')
             return redirect(f'/mentorados/{mentorado.id}/tarefa-adicionar/')
 
-        t = Tarefa(
+        tarefa = Tarefa(
             mentorado=mentorado,
-            tarefa=tarefa,
+            tarefa=tarefa_descricao,
         )
         try:
-            t.save()
+            tarefa.save()
             messages.add_message(request, messages.SUCCESS, 'Tarefa adicionada com sucesso.')
         except Exception as e:
             messages.add_message(request, messages.ERROR, f'Erro: {e}.')
@@ -248,14 +258,13 @@ def tarefa_adicionar(request, id):
     return render(request, template_name, context)
 
 @login_required
-def upload(request, id):
+def upload(request, id): #id do mentorado
     if request.method == 'POST':
         mentorado = Mentorado.objects.get(id=id)
         if mentorado.user != request.user:
             raise Http404()
         
         video = request.FILES.get('video')
-        print(video)
 
         if not video:
             messages.add_message(request, messages.WARNING, 'Vídeo não escolhido !')
@@ -269,18 +278,20 @@ def upload(request, id):
         except Exception as e:
             messages.add_message(request, messages.ERROR, f'Erro: {e}.')
         
-        return redirect(f'/mentorados/{mentorado.id}/tarefa/')
+        return redirect(f'/mentorados/{mentorado.id}/tarefa-adicionar/')
 
 def tarefas(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
-    if not mentorado:
-        return redirect('auth_mentorado')
+    # if not mentorado:
+    #     return redirect('auth_mentorado')
+    class_name = 'hidden' if mentorado else ''
+    # class_name = ''
     
     template_name = 'tarefas.html'
     videos = Upload.objects.filter(mentorado=mentorado)
     tarefas = Tarefa.objects.filter(mentorado=mentorado)
     
-    context = {'mentorado': mentorado, 'videos': videos, 'tarefas': tarefas}
+    context = {'mentorado': mentorado, 'videos': videos, 'tarefas': tarefas, 'class_name': class_name}
 
     return render(request, template_name, context)
 
