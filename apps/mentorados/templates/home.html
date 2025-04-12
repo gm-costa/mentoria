@@ -20,8 +20,7 @@
             <p class="">Onde você encontra os melhores profissionais para assessorar seu negócio</p>
         </div>
         <div class="w-[25vw] flex flex-col items-center gap-8 px-4">
-            
-
+            {% csrf_token %}
             <div class="flex flex-col items-center bg-slate-900/75 rounded-xl w-full min-h-36 py-6">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="text-indigo-400 size-6">
@@ -42,5 +41,8 @@
 
         </div>
     </div>
+    <!-- modal authenticator -->
+    {% include "modal_authenticator.html" %}
 </div>
+<script src="{% static 'mentorados/js/auth.js' %}"></script>
 {% endblock 'body' %}

@@ -13,7 +13,8 @@ from django.db import transaction
 
 
 def home(request):
-    return render(request, 'home.html')
+    c_hide = '' if request.GET.get('src') else 'hidden'
+    return render(request, 'home.html', {'c_hide': c_hide})
 
 @login_required
 def mentorados(request):
@@ -149,12 +150,12 @@ def auth_mentorado(request):
 
 def escolher_dia(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
-    class_name = 'hidden' if mentorado else ''
+    if not mentorado:
+        return redirect('/mentorados/home/?src=escolher-dia')
+    
     template_name = 'escolher_dia.html'
-    context = {'class_name': class_name}
 
     if mentorado:
-
         disponibilidades = DisponibilidadeHorario.objects.filter(
             data_inicial__gte=datetime.now(),
             agendado=False,
@@ -163,9 +164,9 @@ def escolher_dia(request):
 
         datas = sorted(list(set([x.date() for x in disponibilidades])))
 
-        context['datas'] = datas
-
-    return render(request, template_name, context)
+        return render(request, template_name, {'datas': datas})
+    
+    return render(request, template_name)
 
 def agendar_reuniao(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
@@ -282,16 +283,14 @@ def upload(request, id): #id do mentorado
 
 def tarefas(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
-    # if not mentorado:
-    #     return redirect('auth_mentorado')
-    class_name = 'hidden' if mentorado else ''
-    # class_name = ''
+    if not mentorado:
+        return redirect('/mentorados/home/?src=tarefas')
     
     template_name = 'tarefas.html'
     videos = Upload.objects.filter(mentorado=mentorado)
     tarefas = Tarefa.objects.filter(mentorado=mentorado)
     
-    context = {'mentorado': mentorado, 'videos': videos, 'tarefas': tarefas, 'class_name': class_name}
+    context = {'mentorado': mentorado, 'videos': videos, 'tarefas': tarefas}
 
     return render(request, template_name, context)
 

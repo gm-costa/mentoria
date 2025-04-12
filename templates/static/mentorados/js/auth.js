@@ -2,6 +2,8 @@ const modal = document.querySelector('.relative.z-10');
 const btnCancelar = document.getElementById('modalBtnCancelar');
 const btnAcessar = document.getElementById('modalBtnAcessar');
 const msgRetorno = document.getElementById('mensagem_retorno');
+const urlParams = new URLSearchParams(window.location.search);
+const urlDestino = urlParams.get('src');
 
 btnCancelar.addEventListener('click', (e) => {
     e.preventDefault();
@@ -26,9 +28,8 @@ btnAcessar.addEventListener('click', (e) => {
         msgRetorno.innerHTML = data.mensagem;
         if(data.status == 0){
             closeModal();
-            document.location.reload(true);
-            // setCookie('auth_token', token, 3600);
-            setCookie('auth_token', token, 10*60);
+            window.location.href = `/mentorados/${urlDestino}/`
+            setCookie('auth_token', token, 30*60);
         } else {
             msgRetorno.parentElement.classList.remove('hidden');
         }
@@ -50,4 +51,3 @@ function setCookie(name, value, seconds) {
 
     document.cookie = cookie;
 }
-
