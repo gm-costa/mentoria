@@ -65,48 +65,32 @@ def mentorados(request):
     return render(request, template_name, context)
 
 @login_required
-def add_navigator(request):
-
-    nome = request.POST.get('nome_navigator').strip().upper()
-    
-    if len(nome) > 0:
-        Navigator(nome=nome, user=request.user).save()
-
-    navigators = Navigator.objects.filter(user=request.user).order_by('nome')
-
-    return render(request, 'options_navigator.html', {'navigators':  navigators})
-
-@login_required
 def reunioes(request):
     template_name = 'reunioes.html'
     #TODO: a princípio mostrar todas as reunioes, depois filtar pelo template
     reunioes = Reuniao.objects.filter(data__mentor=request.user)
-    horarios = [str(h).zfill(2) for h in range(8, 18) if h not in (12, 13)  ]
-    # context = {'reunioes': reunioes}
-    context = {'reunioes': reunioes, 'horarios': horarios}
+    context = {'reunioes': reunioes}
 
     if request.method == 'POST':
         data = request.POST.get('data')
-        data = datetime.strptime(data, '%Y-%m-%dT%H:%M')
+        horarios_list = request.POST.getlist('horario')
 
-        disponibilidade_horario = DisponibilidadeHorario.objects.filter(
-            mentor=request.user,
-            data_inicial__gte=(data - timedelta(minutes=50)),
-            data_inicial__lte=(data + timedelta(minutes=50))
-        )
+        disponibilidades = []
+        for hora in horarios_list:
+            dt = datetime.strptime(data+'T'+hora+':00', '%Y-%m-%dT%H:%M')
 
-        if disponibilidade_horario.exists():
-            mensagem = " e ".join(f"{i.data_inicial.strftime('%d-%m-%Y %H:%M')} à {i.data_final.strftime('%d-%m-%Y %H:%M')}" for i in disponibilidade)
-            messages.add_message(request, messages.WARNING, f'Você já possui reuniões em aberto entre: {mensagem}')
-            return redirect(reverse('reunioes'))
+            disponibilidade_horario = DisponibilidadeHorario.objects.filter(mentor=request.user, data_inicial=dt)
 
-        disponibilidade = DisponibilidadeHorario(
-            data_inicial=data,
-            mentor=request.user
-        )
+            if disponibilidade_horario.exists():
+                messages.add_message(request, messages.WARNING, f"Você já possui reunião em {dt.strftime('%d/%m/%Y')} às {dt.strftime('%H:%M')}")
+                return redirect('reunioes')
+            
+            disponibilidades.append(DisponibilidadeHorario(data_inicial=dt, mentor=request.user))
+
         try:
-            disponibilidade.save()
-            messages.add_message(request, messages.SUCCESS, 'Horário disponibilizado com sucesso.')
+            DisponibilidadeHorario.objects.bulk_create(disponibilidades)
+            mensagem = 'Horários disponibilizados' if len(disponibilidades) > 1 else 'Horário disponibilizado'
+            messages.add_message(request, messages.SUCCESS, f'{mensagem} com sucesso.')
         except Exception as e:
             messages.add_message(request, messages.ERROR, f'Erro: {e}.')
 
@@ -293,19 +277,3 @@ def tarefas(request):
     context = {'mentorado': mentorado, 'videos': videos, 'tarefas': tarefas}
 
     return render(request, template_name, context)
-
-@csrf_exempt
-def tarefa_concluir(request, id_tarefa):
-    mentorado = valida_token(request.COOKIES.get('auth_token'))
-    if not mentorado:
-        return redirect('auth_mentorado')
-
-    tarefa = Tarefa.objects.get(id=id_tarefa)
-
-    if mentorado != tarefa.mentorado:
-        raise Http404()
-    
-    tarefa.realizada = not tarefa.realizada
-    tarefa.save()
-
-    return HttpResponse('teste')

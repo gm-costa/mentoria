@@ -6,6 +6,7 @@
 <div class="flex min-h-screen bg-slate-900">
     <div class="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
         <div class="mx-auto w-full max-w-sm lg:w-96">
+            <a href="{% url 'home' %}"><img class="h-15 w-auto" src="{% static 'img/logo.png' %}" alt="Logo da Mentorfy"></a>
             {% block 'content-div' %}{% endblock 'content-div' %}
         </div>
     </div>

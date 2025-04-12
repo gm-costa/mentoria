@@ -1,0 +1,19 @@
+<fieldset id="lista_horarios" class="mt-6 text-white">
+    <div class="border-b border-gray-700">Horários</div>
+    <div class="mt-4 grid grid-cols-4 gap-2 pointer-coarse:mt-6 pointer-coarse:grid-cols-3 pointer-coarse:gap-4 px-2">
+        {% for h in horarios %}
+            <div class="relative flex items-start py-2 inert:opacity-30"
+            {% if h in list_horarios %}inert{% endif %}
+            >
+                <input id="{{h}}" type="checkbox" class="hidden peer" name="horario" value="{{h}}">
+                <label for="{{h}}" class="inline-flex items-center justify-between w-20 p-2 font-medium tracking-tight border rounded-lg cursor-pointer bg-brand-light text-brand-black border-indigo-400 peer-checked:outline-2 peer-checked:outline-offset-2 peer-checked:outline-blue-950
+                peer-checked:border-blue-900 peer-checked:bg-blue-950 peer-checked:text-white peer-checked:font-semibold peer-checked:decoration-brand-dark decoration-2">
+                    <div class="flex items-center justify-center w-full">
+                        <div class="text-sm text-brand-black">{{h}}:00</div>
+                    </div>
+                </label>
+            </div>
+        {% endfor %}
+
+    </div>
+</fieldset>

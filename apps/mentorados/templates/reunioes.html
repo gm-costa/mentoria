@@ -4,60 +4,54 @@
 
 {% block 'body' %}
 <div class="bg-[#040e1b] min-h-screen">
-    <div class="max-w-7xl mx-auto py-8">
+    <div class="max-w-7xl mx-auto py-8 2xl:px-0 sm:px-8">
         <div class="grid grid-cols-2 gap-12">
             <div>
-                <h2 class="my-4 text-2xl/9 font-bold tracking-tight text-gray-100">Abra um horário</h2>
+                <h2 class="my-4 text-2xl/9 font-bold tracking-tight text-gray-100">Abra &nbsp;horários</h2>
                 {% include "partials/messages.html" %}
                 <form action="{% url 'reunioes' %}" method="POST">{% csrf_token %}
                     <label for="email" class="block text-sm/6 font-medium text-gray-200">Data</label>
-                    <input type="datetime-local" name="data" id="date" required class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6">
+                    <input type="date" name="data" id="data" class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                    hx-get="{% url 'busca_horarios' %}"
+                    hx-trigger="change"
+                    hx-target="#lista_horarios"
+                    hx-swap="outerHTML"
+                    >
                     
-                    <fieldset aria-label="Choose a memory option" class="my-6 text-white">
-                        <div class="border-b border-gray-700">Horários</div>
-                        <div class="mt-4 grid grid-cols-4 gap-2 pointer-coarse:mt-6 pointer-coarse:grid-cols-3 pointer-coarse:gap-4">
-                            {% for h in horarios %}
-                            <div class="relative flex items-start py-4 ml-2">
-                                <input id="{{h}}" type="checkbox" class="hidden peer" name="horario" value="{{h}}">
-                                <label for="{{h}}" class="inline-flex items-center justify-between w-20 p-2 font-medium tracking-tight border rounded-lg cursor-pointer bg-brand-light text-brand-black border-indigo-400 peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:font-semibold peer-checked:decoration-brand-dark decoration-2">
-                                    <div class="flex items-center justify-center w-full">
-                                        <div class="text-sm text-brand-black">{{h}}h</div>
-                                    </div>
-                                </label>
-                            </div>
-                            {% endfor %}
+                    <fieldset id="lista_horarios" class="text-white"></fieldset>
 
-                        </div>
-                    </fieldset>
-
-
-                    <button type="submit" class="flex w-full justify-center cursor-pointer rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 mt-4">Abrir horários</button>
+                    <button type="submit" class="flex w-full justify-center cursor-pointer rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 mt-6">Abrir horários</button>
                 </form>
+                <div id="list_horarios_2" class="mt-5 flex flex-wrap gap-3 text-slate-600"></div>
             </div>
             <div>
                 <h2 class="my-4 text-2xl/9 font-bold tracking-tight text-gray-100">Reuniões</h2>
-                <ul role="list" class="divide-y divide-gray-800">
-                    {% for reuniao in reunioes %}
-                        <li class="flex justify-between gap-x-6 py-5">
-                            <div class="flex min-w-0 gap-x-4">
-                                <img class="size-12 flex-none rounded-full bg-gray-800" 
-                                    src="{% if reuniao.mentorado.foto %}{{reuniao.mentorado.foto.url}}{% endif %}" alt="Imagem do mentorado"
-                                >
-                                <div class="min-w-0 flex-auto">
-                                    <p class="text-sm/6 font-semibold text-white">{{reuniao.mentorado.nome}}</p>
-                                    <p class="mt-1 truncate text-xs/5 text-gray-400">{{reuniao.descricao}}</p>
+                {% if reunioes %}
+                    <ul role="list" class="divide-y divide-gray-800">
+                        {% for reuniao in reunioes %}
+                            <li class="flex justify-between gap-x-6 py-5">
+                                <div class="flex min-w-0 gap-x-4">
+                                    <img class="size-12 flex-none rounded-full bg-gray-800" 
+                                        src="{% if reuniao.mentorado.foto %}{{reuniao.mentorado.foto.url}}{% endif %}" alt="Imagem do mentorado"
+                                    >
+                                    <div class="min-w-0 flex-auto">
+                                        <p class="text-sm/6 font-semibold text-white">{{reuniao.mentorado.nome}}</p>
+                                        <p class="mt-1 truncate text-xs/5 text-gray-400">{{reuniao.descricao}}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                                <p class="text-sm/6 text-white">{{reuniao.data.data_inicial}}</p>
-                                <p class="mt-1 text-xs/5 text-gray-400"></p>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
+                                <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                                    <p class="text-sm/6 text-white">{{reuniao.data.data_inicial}}</p>
+                                    <p class="mt-1 text-xs/5 text-gray-400"></p>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                {% else %}
+                    <h2 class="text-gray-400">Não há reuniões agendadas.</h2>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
-
+<script src="{% static 'js/htmx.min.js' %}"></script>
 {% endblock 'body' %}
