@@ -38,7 +38,7 @@ def tarefa_concluir(request, id_tarefa):
 @login_required
 def busca_horarios(request):
     template_name = 'hx/horarios.html'
-    data = request.GET.get('data2')
+    data = request.GET.get('data')
     data = datetime.strptime(data + 'T00:01', '%Y-%m-%dT%H:%M')
 
     horarios = [str(h).zfill(2) for h in range(8, 18) if h not in (12, 13)]

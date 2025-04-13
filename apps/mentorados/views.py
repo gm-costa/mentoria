@@ -67,9 +67,21 @@ def mentorados(request):
 @login_required
 def reunioes(request):
     template_name = 'reunioes.html'
-    #TODO: a princípio mostrar todas as reunioes, depois filtar pelo template
+    data_filter = request.GET.get('data-filter')
+    mentorado_filter = request.GET.get('mentorado-filter')
+
     reunioes = Reuniao.objects.filter(data__mentor=request.user)
-    context = {'reunioes': reunioes}
+
+    if data_filter:
+        data_filter_date = datetime.strptime(data_filter + 'T00:01', '%Y-%m-%dT%H:%M')
+        reunioes = reunioes.filter(
+            data__data_inicial__gte=data_filter_date,
+            data__data_inicial__lte=(data_filter_date + timedelta(minutes=(23*60 + 58)))
+        )
+    if mentorado_filter:
+        reunioes = reunioes.filter(mentorado__nome__icontains=mentorado_filter)
+
+    context = {'reunioes': reunioes, 'data_filter': data_filter, 'mentorado_filter': mentorado_filter}
 
     if request.method == 'POST':
         data = request.POST.get('data')
@@ -97,29 +109,6 @@ def reunioes(request):
         return redirect('reunioes')
 
     return render(request, template_name, context)
-
-# def auth_mentorado(request):
-#     # template_name = 'auth_mentorado.html'
-#     if request.method == 'POST':
-#         url_origem = request.POST.get('url_origem')
-#         token = request.POST.get('token').strip()
-
-#         if len(token) == 0:
-#             messages.add_message(request, messages.WARNING, 'Token não informado !')
-#             return redirect(url_origem)
-        
-#         if not Mentorado.objects.filter(token=token).exists():
-#             messages.add_message(request, messages.ERROR, 'Token inválido')
-#             return redirect(url_origem)
-#             # return redirect('auth_mentorado')
-        
-#         # response = redirect('escolher_dia')
-#         response = redirect(url_origem)
-#         # response.set_cookie('auth_token', token, max_age=3600)
-#         response.set_cookie('auth_token', token, max_age=2*60)
-#         return response
-    
-#     # return render(request, template_name)
 
 def auth_mentorado(request):
     body = json.loads(request.body)
