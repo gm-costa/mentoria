@@ -144,7 +144,7 @@ def escolher_dia(request):
 def agendar_reuniao(request):
     mentorado = valida_token(request.COOKIES.get('auth_token'))
     if not mentorado:
-        return redirect(reverse('auth_mentorado'))
+        return redirect('/mentorados/home/?src=escolher-dia')
     
     template_name = 'agendar_reuniao.html'
     data_str = request.GET.get('data')
